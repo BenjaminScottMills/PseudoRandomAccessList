@@ -1,4 +1,3 @@
-// TODO: Tune inefficiency mods for jumpdepth and number of jumppoints.
 #include <math.h>
 
 template <typename T>
@@ -617,16 +616,16 @@ class Pral
         }
 
     public:
-        Pral ()
+        Pral (float totalJumpPointsInefficiencyModArg = 3, float jumpDepthInefficiencyModArg = 2)
         {
             sizeVar = 0;
             walkDistance = 0;
             jumpDepth = 0;
-            totalJumpPointsInefficiencyMod = 5;
-            jumpDepthInefficiencyMod = 3;
+            totalJumpPointsInefficiencyMod = totalJumpPointsInefficiencyModArg;
+            jumpDepthInefficiencyMod = jumpDepthInefficiencyModArg;
         }
         
-        Pral (std::initializer_list<T> const & input, float totalJumpPointsInefficiencyModArg = 5, float jumpDepthInefficiencyModArg = 3)
+        Pral (std::initializer_list<T> const & input, float totalJumpPointsInefficiencyModArg = 3, float jumpDepthInefficiencyModArg = 2)
         {
             PralNode<T> * iterationNode;
             float floatWalkDist;
