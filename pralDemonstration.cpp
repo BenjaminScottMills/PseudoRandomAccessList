@@ -17,7 +17,7 @@ int main()
     PralIndexedReference<int> ref;
     int counter = 0;
     time_t timer;
-    int startPoint;
+    int accessPoint;
 
     srand(time(0));
 
@@ -26,7 +26,7 @@ int main()
         rng.push_back(rand());
     }
 
-    std::cout << "Arbitrary index insertion test. 1000000 elements, 5000 insertions:\n\n";
+    std::cout << "Arbitrary index insertion test, 1000000 elements, 5000 insertions:\n\n";
     
     for(int i = 5; i < 1000000; i++)
     {
@@ -41,9 +41,9 @@ int main()
 
     for(int i = 0; i < 5000; i += 1)
     {
-        startPoint = lround(vec.size() * (float) rng[i] / RAND_MAX);
+        accessPoint = lround(vec.size() * (float) rng[i] / RAND_MAX);
 
-        vec.insert(vec.begin() + startPoint, i);
+        vec.insert(vec.begin() + accessPoint, i);
     }
 
     std::cout << "vector time: " << clock() - timer << std::endl;
@@ -53,9 +53,9 @@ int main()
 
     for(int i = 0; i < 5000; i += 1)
     {
-        startPoint = lround(myPral.size() * (float) rng[i] / RAND_MAX);
+        accessPoint = lround(myPral.size() * (float) rng[i] / RAND_MAX);
 
-        myPral.insert(i, startPoint);
+        myPral.insert(i, accessPoint);
     }
 
     std::cout << "pral time: " << clock() - timer << std::endl;
@@ -65,9 +65,9 @@ int main()
 
     for(int i = 0; i < 5000; i += 1)
     {
-        startPoint = lround(deq.size() * (float) rng[i] / RAND_MAX);
+        accessPoint = lround(deq.size() * (float) rng[i] / RAND_MAX);
 
-        deq.insert(deq.begin() + startPoint, i);
+        deq.insert(deq.begin() + accessPoint, i);
     }
 
     std::cout << "deque time: " << clock() - timer << std::endl;
@@ -77,32 +77,46 @@ int main()
 
     for(int i = 0; i < 5000; i += 1)
     {
-        startPoint = lround(myList.size() * (float) rng[i] / RAND_MAX);
+        accessPoint = lround(myList.size() * (float) rng[i] / RAND_MAX);
 
-        if(startPoint < myList.size() / 2)
+        if(accessPoint < myList.size() / 2)
         {
-            myList.insert(next(myList.begin(), startPoint), i);
+            myList.insert(next(myList.begin(), accessPoint), i);
         }
         else
         {
-            myList.insert(prev(myList.end(), myList.size() - startPoint), i);
+            myList.insert(prev(myList.end(), myList.size() - accessPoint), i);
         }
     }
 
     std::cout << "list time: " << clock() - timer << std::endl;
 
-    std::cout << "\nArbitrary index erasure test:\n\n";
+    std::cout << "\nChecking for differences between the pral and the vector:\n";
+    
+    ref = myPral.getIndexedReference(0);
+    
+    for(int k = 0; k < vec.size(); k++)
+    {
+        if(vec[k] != ref.getValue())
+        {
+            std::cout << std::endl << k << " " << vec[k] << " " << ref.getValue();
+        }
+
+        ref.forward();
+    }
+
+    std::cout << "\nArbitrary index erasure test, 5000 erasures:\n\n";
 
     // Vector start
     timer = clock();
 
     for(int i = 0; i < 5000; i += 1)
     {
-        startPoint = lround(vec.size() * (float) rng[i+5000] / RAND_MAX);
+        accessPoint = lround(vec.size() * (float) rng[i+5000] / RAND_MAX);
 
-        if(startPoint == vec.size()) startPoint --;
+        if(accessPoint == vec.size()) accessPoint --;
 
-        vec.erase(vec.begin() + startPoint);
+        vec.erase(vec.begin() + accessPoint);
     }
 
     std::cout << "vector time: " << clock() - timer << std::endl;
@@ -112,11 +126,11 @@ int main()
 
     for(int i = 0; i < 5000; i += 1)
     {
-        startPoint = lround(myPral.size() * (float) rng[i+5000] / RAND_MAX);
+        accessPoint = lround(myPral.size() * (float) rng[i+5000] / RAND_MAX);
 
-        if(startPoint == myPral.size()) startPoint --;
+        if(accessPoint == myPral.size()) accessPoint --;
 
-        myPral.erase(startPoint);
+        myPral.erase(accessPoint);
     }
 
     std::cout << "pral time: " << clock() - timer << std::endl;
@@ -126,11 +140,11 @@ int main()
 
     for(int i = 0; i < 5000; i += 1)
     {
-        startPoint = lround(deq.size() * (float) rng[i+5000] / RAND_MAX);
+        accessPoint = lround(deq.size() * (float) rng[i+5000] / RAND_MAX);
 
-        if(startPoint == deq.size()) startPoint --;
+        if(accessPoint == deq.size()) accessPoint --;
 
-        deq.erase(deq.begin() + startPoint);
+        deq.erase(deq.begin() + accessPoint);
     }
 
     std::cout << "deque time: " << clock() - timer << std::endl;
@@ -140,26 +154,26 @@ int main()
 
     for(int i = 0; i < 5000; i += 1)
     {
-        startPoint = lround(myList.size() * (float) rng[i+5000] / RAND_MAX);
+        accessPoint = lround(myList.size() * (float) rng[i+5000] / RAND_MAX);
 
-        if(startPoint == myList.size()) startPoint --;
+        if(accessPoint == myList.size()) accessPoint --;
 
-        if(startPoint < myList.size() / 2)
+        if(accessPoint < myList.size() / 2)
         {
-            myList.erase(next(myList.begin(), startPoint));
+            myList.erase(next(myList.begin(), accessPoint));
         }
         else
         {
-            myList.erase(prev(myList.end(), myList.size() - startPoint));
+            myList.erase(prev(myList.end(), myList.size() - accessPoint));
         }
     }
 
     std::cout << "list time: " << clock() - timer << std::endl;
 
-
-    // Checking to ensure the PRAL matches the Vector:
+    std::cout << "\nChecking for differences between the pral and the vector:\n";
+    
     ref = myPral.getIndexedReference(0);
-
+    
     for(int k = 0; k < vec.size(); k++)
     {
         if(vec[k] != ref.getValue())
