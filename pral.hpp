@@ -463,7 +463,7 @@ struct PralIndexListNode
 };
 
 template <typename T>
-class PralIndexedReference
+class PralIndexedIterator
 {
     private:
         PralIndexListNode * indexSource;
@@ -493,18 +493,18 @@ class PralIndexedReference
         }
 
     public:
-        PralIndexedReference(PralIndexListNode * inIndexSource = NULL, PralNode<T> * inReferencedNode = NULL)
+        PralIndexedIterator(PralIndexListNode * inIndexSource = NULL, PralNode<T> * inReferencedNode = NULL)
         {
             indexSource = inIndexSource;
             referencedNode = inReferencedNode;
         }
 
-        ~PralIndexedReference()
+        ~PralIndexedIterator()
         {
             dereferenceIndex();
         }
 
-        void operator=(PralIndexedReference<T> const & input)
+        void operator=(PralIndexedIterator<T> const & input)
         {
             referencedNode = input.referencedNode;
 
@@ -527,7 +527,7 @@ class PralIndexedReference
             referencedNode = referencedNode->prev;
         }
 
-        PralIndexedReference<T> next(int distance = 1)
+        PralIndexedIterator<T> next(int distance = 1)
         {
             PralIndexListNode * newIndexListNode = new PralIndexListNode(indexSource, indexSource->next, indexSource->index + distance);
 
@@ -538,10 +538,10 @@ class PralIndexedReference
                 targetNode = targetNode->next;
             }
 
-            return PralIndexedReference<T>(newIndexListNode, targetNode);
+            return PralIndexedIterator<T>(newIndexListNode, targetNode);
         }
 
-        PralIndexedReference<T> prev(int distance = 1)
+        PralIndexedIterator<T> prev(int distance = 1)
         {
             PralIndexListNode * newIndexListNode = new PralIndexListNode(indexSource, indexSource->next, indexSource->index - distance);
 
@@ -552,7 +552,7 @@ class PralIndexedReference
                 targetNode = targetNode->prev;
             }
 
-            return PralIndexedReference<T>(newIndexListNode, targetNode);
+            return PralIndexedIterator<T>(newIndexListNode, targetNode);
         }
 
         PralNode<T> * getNode()
@@ -785,7 +785,7 @@ class Pral
             delete[] jumpPrevAdresses;
         }
 
-        ~Pral()
+        void clear()
         {
             while(last != NULL)
             {
@@ -803,7 +803,17 @@ class Pral
                 }
 
                 delete indexListHead;
+                indexListHead = NULL;
             }
+
+            sizeVar = 0;
+            walkDistance = 0;
+            jumpDepth = 0;
+        }
+
+        ~Pral()
+        {
+            clear();
         }
 
         PralNode<T> * jumpToNode(unsigned int targetIndex)
@@ -924,12 +934,12 @@ class Pral
             indexListShiftInsertion(insertionIndex);
         }
 
-        void insertAfter(T value, PralIndexedReference<T> & reference)
+        void insertAfter(T value, PralIndexedIterator<T> & reference)
         {
             insertAfter(value, reference.getNode(), reference.getIndex() + 1);
         }
 
-        void insertBefore(T value, PralIndexedReference<T> & reference)
+        void insertBefore(T value, PralIndexedIterator<T> & reference)
         {
             PralNode<T> * node = reference.getNode();
             
@@ -1184,7 +1194,7 @@ class Pral
             indexListShiftErasure(erasureIndex);
         }
 
-        void erase(PralIndexedReference<T> & reference)
+        void erase(PralIndexedIterator<T> & reference)
         {
             erase(reference.getNode(), reference.getIndex());
         }
@@ -1205,35 +1215,35 @@ class Pral
             }
         }
 
-        PralIndexedReference<T> getIndexedReference(unsigned int index)
+        PralIndexedIterator<T> getIndexedIterator(unsigned int index)
         {
             if(indexListHead)
             {
                 new PralIndexListNode(indexListHead, indexListHead->next, index);
 
-                return PralIndexedReference<T>(indexListHead->next, jumpToNode(index));
+                return PralIndexedIterator<T>(indexListHead->next, jumpToNode(index));
             }
             else
             {
                 indexListHead = new PralIndexListNode(NULL, NULL, index);
 
-                return PralIndexedReference<T>(indexListHead, jumpToNode(index));
+                return PralIndexedIterator<T>(indexListHead, jumpToNode(index));
             }
         }
 
-        PralIndexedReference<T> getIndexedReference(PralNode<T> * node, unsigned int index)
+        PralIndexedIterator<T> getIndexedIterator(PralNode<T> * node, unsigned int index)
         {
             if(indexListHead)
             {
                 new PralIndexListNode(indexListHead, indexListHead->next, index);
 
-                return PralIndexedReference<T>(indexListHead->next, node);
+                return PralIndexedIterator<T>(indexListHead->next, node);
             }
             else
             {
                 indexListHead = new PralIndexListNode(NULL, NULL, index);
 
-                return PralIndexedReference<T>(indexListHead, node);
+                return PralIndexedIterator<T>(indexListHead, node);
             }
         }
 
