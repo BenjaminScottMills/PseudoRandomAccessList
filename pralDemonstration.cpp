@@ -14,7 +14,7 @@ int main()
     Pral<int> myPral;
     std::list<int> myList;
     std::list<int>::iterator listIterator;
-    PralIndexedReference<int> ref;
+    PralIndexedIterator<int> ref;
     int counter = 0;
     time_t timer;
     int accessPoint;
@@ -93,7 +93,7 @@ int main()
 
     std::cout << "\nChecking for differences between the pral and the vector:\n";
     
-    ref = myPral.getIndexedReference(0);
+    ref = myPral.getIndexedIterator(0);
     
     for(int k = 0; k < vec.size(); k++)
     {
@@ -172,7 +172,7 @@ int main()
 
     std::cout << "\nChecking for differences between the pral and the vector:\n";
     
-    ref = myPral.getIndexedReference(0);
+    ref = myPral.getIndexedIterator(0);
     
     for(int k = 0; k < vec.size(); k++)
     {
