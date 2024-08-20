@@ -909,7 +909,7 @@ class Pral
                 beforeInsertedNode->jumpAdress = NULL;
             }
 
-            first->insertionJumpPointShift(insertionIndex, sizeVar, jumpDepth);// from the method, don't go horizontally recursive (index 6/9 to 5/9). only go down, first to 6 and first to 5.// like, scoob, what the hell are you talking about// I think I'm already doing what I asked here. This was probably a comment from before I finished the function. Why didn't I remove it? And why aren't we removing it now?
+            first->insertionJumpPointShift(insertionIndex, sizeVar, jumpDepth);
 
             sizeVar ++;
 
@@ -970,7 +970,7 @@ class Pral
             first->jumpAdress = NULL;
             first = newNode;
 
-            first->insertionJumpPointShift(0, sizeVar, jumpDepth);// from the method, don't go horizontally recursive (index 6/9 to 5/9). only go down, first to 6 and first to 5.// like, scoob, what the hell are you talking about// I think I'm already doing what I asked here. This was probably a comment from before I finished the function. Why didn't I remove it? And why aren't we removing it now?
+            first->insertionJumpPointShift(0, sizeVar, jumpDepth);
 
             sizeVar ++;
 
@@ -1013,7 +1013,7 @@ class Pral
             // last->jumpAdress = NULL;
             last = newNode;
 
-            first->insertionJumpPointShift(sizeVar, sizeVar, jumpDepth);// from the method, don't go horizontally recursive (index 6/9 to 5/9). only go down, first to 6 and first to 5.// like, scoob, what the hell are you talking about// I think I'm already doing what I asked here. This was probably a comment from before I finished the function. Why didn't I remove it? And why aren't we removing it now?
+            first->insertionJumpPointShift(sizeVar, sizeVar, jumpDepth);
 
             sizeVar ++;
 
