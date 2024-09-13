@@ -444,7 +444,8 @@ struct PralIndexListNode
     PralIndexListNode * prev = NULL;
     PralIndexListNode * next = NULL;
     unsigned int index;
-    bool active = true;
+    bool active = true;// While true, it means that there is an accosiated PralIndexedIterator with this node.
+    bool abandoned = false;// abandoned by pral. When True, this means connections don't matter, and PralIndexedIterators should handle destroying them
 
     PralIndexListNode(PralIndexListNode * inPrev, PralIndexListNode * inNext, unsigned int inIndex)
     {
@@ -454,11 +455,6 @@ struct PralIndexListNode
 
         if(prev) prev->next = this;
         if(next) next->prev = this;
-    }
-    ~PralIndexListNode()
-    {
-        if(prev) prev->next = next;
-        if(next) next->prev = prev;
     }
 };
 
@@ -473,6 +469,12 @@ class PralIndexedIterator
         {
             if(!indexSource)
             {
+                return;
+            }
+
+            if(indexSource->abandoned)
+            {
+                delete indexSource;
                 return;
             }
 
@@ -613,6 +615,54 @@ class Pral
             walkDistance = 0;
 
             jumpDepth = 0;
+        }
+
+        void indexListShiftInsertion(unsigned int insertionIndex)
+        {
+            PralIndexListNode * iterator = indexListHead;
+
+            if(indexListHead && !indexListHead->active)
+            {
+                iterator = indexListHead->next;
+                delete indexListHead;
+                indexListHead = iterator;
+
+                if(indexListHead)
+                {
+                    indexListHead->prev = NULL;
+                }
+            }
+
+            while(iterator != NULL)
+            {
+                if(iterator->index >= insertionIndex) iterator->index ++;
+
+                iterator = iterator->next;
+            }
+        }
+
+        void indexListShiftErasure(unsigned int erasureIndex)
+        {
+            PralIndexListNode * iterator = indexListHead;
+
+            if(indexListHead && !indexListHead->active)
+            {
+                iterator = indexListHead->next;
+                delete indexListHead;
+                indexListHead = iterator;
+
+                if(indexListHead)
+                {
+                    indexListHead->prev = NULL;
+                }
+            }
+
+            while(iterator != NULL)
+            {
+                if(iterator->index > erasureIndex) iterator->index --;
+
+                iterator = iterator->next;
+            }
         }
 
     public:
@@ -796,14 +846,18 @@ class Pral
 
             if(indexListHead != NULL)
             {
-                while(indexListHead->next != NULL)
+                if(!indexListHead->active)
                 {
-                    indexListHead = indexListHead->next;
-                    delete indexListHead->prev;
+                    PralIndexListNode * tempHead = indexListHead->next;
+                    delete indexListHead;
+                    indexListHead = tempHead;
                 }
 
-                delete indexListHead;
-                indexListHead = NULL;
+                while(indexListHead != NULL)
+                {
+                    indexListHead->abandoned = true;
+                    indexListHead = indexListHead->next;
+                }
             }
 
             sizeVar = 0;
@@ -835,54 +889,6 @@ class Pral
             }
 
             return first->jumpToNode(targetIndex, sizeVar, walkDistance, true);
-        }
-
-        void indexListShiftInsertion(unsigned int insertionIndex)
-        {
-            PralIndexListNode * iterator = indexListHead;
-
-            if(indexListHead && !indexListHead->active)
-            {
-                iterator = indexListHead->next;
-                delete indexListHead;
-                indexListHead = iterator;
-
-                if(indexListHead)
-                {
-                    indexListHead->prev = NULL;
-                }
-            }
-
-            while(iterator != NULL)
-            {
-                if(iterator->index >= insertionIndex) iterator->index ++;
-
-                iterator = iterator->next;
-            }
-        }
-
-        void indexListShiftErasure(unsigned int erasureIndex)
-        {
-            PralIndexListNode * iterator = indexListHead;
-
-            if(indexListHead && !indexListHead->active)
-            {
-                iterator = indexListHead->next;
-                delete indexListHead;
-                indexListHead = iterator;
-
-                if(indexListHead)
-                {
-                    indexListHead->prev = NULL;
-                }
-            }
-
-            while(iterator != NULL)
-            {
-                if(iterator->index > erasureIndex) iterator->index --;
-
-                iterator = iterator->next;
-            }
         }
 
         void insertAfter(T value, PralNode<T> * beforeInsertedNode, unsigned int insertionIndex)
@@ -1036,7 +1042,7 @@ class Pral
             }
         }
 
-        void insert(T value, unsigned int index)
+        void insert(unsigned int index, T value)
         {
             if(index == 0)
             {
@@ -1131,7 +1137,7 @@ class Pral
             }
         }
 
-        void erase(PralNode<T> * eraseNode, unsigned int erasureIndex)// the main erase method to create.
+        void erase(PralNode<T> * eraseNode, unsigned int erasureIndex)
         {
             if(erasureIndex == sizeVar - 1)
             {
