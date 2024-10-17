@@ -445,7 +445,7 @@ struct PralIndexListNode
     PralIndexListNode * next = NULL;
     unsigned int index;
     bool active = true;// While true, it means that there is an accosiated PralIndexedIterator with this node.
-    bool abandoned = false;// abandoned by pral. When True, this means connections don't matter, and PralIndexedIterators should handle destroying them
+    bool abandoned = false;// abandoned by pral. When True, this means connections don't matter, and PralIndexedIterators should handle destroying them (instead of leaving it to the pral)
 
     PralIndexListNode(PralIndexListNode * inPrev, PralIndexListNode * inNext, unsigned int inIndex)
     {
@@ -589,7 +589,7 @@ class Pral
         unsigned int sizeVar;
         PralIndexListNode * indexListHead = NULL;
         
-        float totalJumpPointsInefficiencyMod;
+        float totalJumpPointsInefficiencyMod;// The calculation that determines the depth of the binary tree of jump-nodes works by minimising (the maximum walk distance from a node to the nearest jump node) + (the total number of jump-nodes in the binary tree times totalJumpPointsInefficiencyMod) + (the depth of the binary tree of jump-nodes times jumpDepthInefficiencyMod).
         float jumpDepthInefficiencyMod;
 
         void emptyInsert(T value)
