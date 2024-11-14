@@ -1,5 +1,6 @@
 #include <math.h>
 
+// A node in a PRAL. Methods are public so that they may be called by the Pral. Not intended for direct use.
 template <typename T>
 struct PralNode
 {
@@ -15,6 +16,10 @@ struct PralNode
         next = inNext;
     }
 
+    // For use in Pral creation. Creates the binary tree of jump nodes with height jumpDepth for a Pral representing the section of input starting at index beforeSpace with a
+    // size of size. myIndex is the intended index of this PralNode in the Pral. addressArr will have its contents altered (starting at arrIndex) so that the left-side nodes in
+    // each pair in the created tree are contained within in sequential order. indexArr will also be altered to contain the intended indecies (in the Pral) of the nodes in 
+    // adressArr at the corresponding indecies.
     void createTree(std::initializer_list<T> const & input, unsigned int size, unsigned int beforeSpace, short jumpDepth, int indexArr[], PralNode<T> * adressArr[], short * arrIndex, int myIndex)
     {
         if(jumpDepth <= 0)
@@ -44,6 +49,10 @@ struct PralNode
         }
     }
 
+    // For use in Pral creation. Creates the binary tree of jump nodes with height jumpDepth for a Pral representing the section of input starting at index beforeSpace with a
+    // size of size. myIndex is the intended index of this PralNode in the Pral. addressArr will have its contents altered (starting at arrIndex) so that the left-side nodes in
+    // each pair in the created tree are contained within in sequential order. indexArr will also be altered to contain the intended indecies (in the Pral) of the nodes in 
+    // adressArr at the corresponding indecies.
     void createTree(T input[], unsigned int size, unsigned int beforeSpace, short jumpDepth, int indexArr[], PralNode<T> * adressArr[], short * arrIndex, int myIndex)
     {
         if(jumpDepth <= 0)
@@ -73,6 +82,10 @@ struct PralNode
         }
     }
 
+    // For use in Pral creation. Creates the binary tree of jump nodes with height jumpDepth for a Pral representing input with a size of size. myIndex is the intended index
+    // of this PralNode in the Pral. If input is the root of a subtree in a larger Pral, then beforeSpace is the number of elements that appear ahead of the section covered
+    // by the subtree. addressArr will have its contents altered (starting at arrIndex) so that the left-side nodes in each pair in the created tree are contained within in
+    // sequential order. indexArr will also be altered to contain the intended indecies (in the Pral) of the nodes in adressArr at the corresponding indecies. 
     void createTree(PralNode<T> * input, unsigned int size, unsigned int beforeSpace, short jumpDepth, int indexArr[], PralNode<T> * adressArr[], short * arrIndex, int myIndex)
     {
         if(jumpDepth <= 0)
@@ -102,6 +115,8 @@ struct PralNode
         }
     }
 
+    // Adds another layer to the binary tree of jump nodes. sizeOfPral is the size of the segment covered by this and the adjacent node in the tree. remainingJumpDepth is the
+    // intented new depth of the tree after a new layer is added. isAimingForward is true if this is a right-side node in a pair, false if this is a left-side node.
     void addJumpPointLayer(unsigned int sizeOfPral, short remainingJumpDepth, bool isAimingForward)
     {
         if(remainingJumpDepth <= 0) return;
@@ -112,7 +127,7 @@ struct PralNode
 
         if(isAimingForward)
         {
-            effSize = (1 + sizeOfPral) / 2;// still gotta define this, even if jumpAdress != NULL
+            effSize = (1 + sizeOfPral) / 2;
             
             if(remainingJumpDepth == 1)
             {
@@ -156,6 +171,7 @@ struct PralNode
         }
     }
 
+    // Removes the bottom layer from the tree of jump nodes. remainingJumpDepth is the intended depth after the bottom layer has been removed.
     void removeJumpPointLayer(short remainingJumpDepth)
     {
         if(remainingJumpDepth == 0)
@@ -172,6 +188,8 @@ struct PralNode
         }
     }
 
+    // Produces the adress of the node at index targetIndex in the section of a Pral (with size size) covered by the jump-tree rooted at this. walkDistance is the maximum
+    // distance a node may be from the jump tree. isAimingForward is true if this is a right-side node in a pair, false if this is a left-side node.
     PralNode<T> * jumpToNode(unsigned int targetIndex, unsigned int size, short walkDistance, bool isAimingForward)
     {
         PralNode<T> * returnNode;
@@ -210,6 +228,8 @@ struct PralNode
         return jumpAdress->prev->jumpToNode(targetIndex, size / 2, walkDistance, false);
     }
 
+    // Produces the adress of the parent node in the jump tree of the node at targetIndex in the section of a Pral (with size size) covered by the jump-tree rooted at this.
+    // walkDistance is the maximum distance a node may be from the jump tree. if the node at targetIndex is not in the jump tree, produces NULL.
     PralNode<T> * searchTreeForParent(unsigned int targetIndex, unsigned int size, short walkDistance)
     {
         if(walkDistance >= targetIndex || targetIndex >= size - 1 - walkDistance || !jumpAdress) return NULL;
@@ -439,13 +459,14 @@ struct PralNode
     }
 };
 
+// Used for tracking the indecies of nodes referenced by a PralIndexedIterator. Not intended for direct use.
 struct PralIndexListNode
 {
     PralIndexListNode * prev = NULL;
     PralIndexListNode * next = NULL;
     unsigned int index;
     bool active = true;// While true, it means that there is an accosiated PralIndexedIterator with this node.
-    bool abandoned = false;// abandoned by pral. When True, this means connections don't matter, and PralIndexedIterators should handle destroying them (instead of leaving it to the pral)
+    bool abandoned = false;// set to true if the relavent PRAL is cleared or deleted. When True, this means connections don't matter, and PralIndexedIterators should handle destroying them (instead of leaving it to the pral)
 
     PralIndexListNode(PralIndexListNode * inPrev, PralIndexListNode * inNext, unsigned int inIndex)
     {
@@ -465,6 +486,7 @@ class PralIndexedIterator
         PralIndexListNode * indexSource;
         PralNode<T> * referencedNode;
 
+        // deletes indexSource or sets it to be deleted by the relavant PRAL
         void dereferenceIndex()
         {
             if(!indexSource)
@@ -589,7 +611,9 @@ class Pral
         unsigned int sizeVar;
         PralIndexListNode * indexListHead = NULL;
         
-        float totalJumpPointsInefficiencyMod;// The calculation that determines the depth of the binary tree of jump-nodes works by minimising (the maximum walk distance from a node to the nearest jump node) + (the total number of jump-nodes in the binary tree times totalJumpPointsInefficiencyMod) + (the depth of the binary tree of jump-nodes times jumpDepthInefficiencyMod).
+        // The calculation that determines the depth of the binary tree of jump-nodes works by minimising
+        // (the maximum walk distance from a node to the nearest jump node) + ((the total number of jump-nodes in the binary tree) * (totalJumpPointsInefficiencyMod)) + ((the depth of the binary tree of jump-nodes) * (jumpDepthInefficiencyMod).
+        float totalJumpPointsInefficiencyMod;
         float jumpDepthInefficiencyMod;
 
         void emptyInsert(T value)
@@ -755,7 +779,7 @@ class Pral
             delete[] jumpPrevAdresses;
         }
 
-        Pral (T input[], unsigned int size, float totalJumpPointsInefficiencyModArg = 5, float jumpDepthInefficiencyModArg = 3)
+        Pral (T input[], unsigned int size, float totalJumpPointsInefficiencyModArg = 3, float jumpDepthInefficiencyModArg = 2)
         {
             PralNode<T> * iterationNode;
             float floatWalkDist;
