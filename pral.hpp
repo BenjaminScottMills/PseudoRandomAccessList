@@ -244,6 +244,9 @@ struct PralNode
         return jumpAdress->prev->searchTreeForParent(targetIndex, size / 2, walkDistance);
     }
 
+    // Methods for tree shifting after insertion and erasure:
+
+    // Shifts all descendants (excluding this) in the jump tree right by 1 node in the Pral. jumpDepth is the remaining height of the jump tree.
     void shiftAllRightByOne(short jumpDepth)
     {
         if(jumpDepth == 0) return;
@@ -259,6 +262,7 @@ struct PralNode
         jumpAdress->prev->shiftAllRightByOne(jumpDepth);
     }
 
+    // Shifts all descendants (excluding this) in the jump tree left by 1 node in the Pral. jumpDepth is the remaining height of the jump tree.
     void shiftAllLeftByOne(short jumpDepth)
     {
         if(jumpDepth == 0) return;
@@ -274,14 +278,17 @@ struct PralNode
         jumpAdress->prev->shiftAllLeftByOne(jumpDepth);
     }
 
-    void insertionJumpPointShiftNoSegmentSizeIncreace(unsigned int insertionIndex, unsigned int size, short jumpDepth)
+    // Called to shift the jump nodes after an element has been inserted into the Pral, the Sub-Pral (the section of the Pral covered by the jump tree rooted at this) is NOT set
+    // to increase in size by 1, and NO Sub-Pral fully to the left of the one rooted at this is set to increase in size. insertionIndex is the index that the new element was
+    // inserted at within the Sub-Pral, size is the number of elements in the Sub-Pral (before the insertion), and jumpDepth is the remaining height in the jump tree.
+    void insertionJumpPointShiftNoSegmentSizeIncrease(unsigned int insertionIndex, unsigned int size, short jumpDepth)
     {
         if(jumpDepth == 0) return;
         jumpDepth --;
 
         if(insertionIndex > size/2)
         {
-            if(insertionIndex < size) jumpAdress->insertionJumpPointShiftNoSegmentSizeIncreace(insertionIndex - (size/2), (size + 1) / 2, jumpDepth);
+            if(insertionIndex < size) jumpAdress->insertionJumpPointShiftNoSegmentSizeIncrease(insertionIndex - (size/2), (size + 1) / 2, jumpDepth);
         }
         else
         {
@@ -292,11 +299,14 @@ struct PralNode
             jumpAdress = jumpAdress->prev;
 
             jumpAdress->shiftAllLeftByOne(jumpDepth);
-            jumpAdress->prev->insertionJumpPointShiftNoSegmentSizeIncreace(insertionIndex, size/2, jumpDepth);
+            jumpAdress->prev->insertionJumpPointShiftNoSegmentSizeIncrease(insertionIndex, size/2, jumpDepth);
         }
     }
 
-    void rightShiftedInsertionJumpPointShiftNoSegmentSizeIncreace(unsigned int insertionIndex, unsigned int size, short jumpDepth)// replaces shift left with nothing, replaces nothing with shift right.
+    // Called to shift the jump nodes after an element has been inserted into the Pral, the Sub-Pral (the section of the Pral covered by the jump tree rooted at this) is NOT set
+    // to increase in size by 1, and a Sub-Pral fully to the left of the one rooted at this IS set to increase in size. insertionIndex is the index that the new element was
+    // inserted at within the Sub-Pral, size is the number of elements in the Sub-Pral (before the insertion), and jumpDepth is the remaining height in the jump tree.
+    void rightShiftedInsertionJumpPointShiftNoSegmentSizeIncrease(unsigned int insertionIndex, unsigned int size, short jumpDepth)
     {
         if(jumpDepth == 0) return;
         jumpDepth --;
@@ -309,18 +319,21 @@ struct PralNode
 
             jumpAdress = jumpAdress->next;
             
-            if(insertionIndex < size) jumpAdress->rightShiftedInsertionJumpPointShiftNoSegmentSizeIncreace(insertionIndex - (size/2), (size + 1) / 2, jumpDepth);
+            if(insertionIndex < size) jumpAdress->rightShiftedInsertionJumpPointShiftNoSegmentSizeIncrease(insertionIndex - (size/2), (size + 1) / 2, jumpDepth);
             else jumpAdress->shiftAllRightByOne(jumpDepth);
 
             jumpAdress->prev->shiftAllRightByOne(jumpDepth);
         }
         else
         {
-            jumpAdress->prev->rightShiftedInsertionJumpPointShiftNoSegmentSizeIncreace(insertionIndex, size/2, jumpDepth);
+            jumpAdress->prev->rightShiftedInsertionJumpPointShiftNoSegmentSizeIncrease(insertionIndex, size/2, jumpDepth);
         }
     }
 
-    void insertionJumpPointShift(unsigned int insertionIndex, unsigned int size, short jumpDepth)// move the jump nodes further down. this method is run when 1 is added to this section of the pral.
+    // Called to shift the jump nodes after an element has been inserted into the Pral, and the Sub-Pral (the section of the Pral covered by the jump tree rooted at this) is set
+    // to increase in size by 1. insertionIndex is the index that the new element was inserted at within the Sub-Pral, size is the number of elements in the Sub-Pral (before the
+    // insertion), and jumpDepth is the remaining height in the jump tree.
+    void insertionJumpPointShift(unsigned int insertionIndex, unsigned int size, short jumpDepth)
     {
         if(jumpDepth == 0) return;
         jumpDepth --;
@@ -335,7 +348,7 @@ struct PralNode
 
                 jumpAdress = jumpAdress->next;
 
-                if(insertionIndex < size) jumpAdress->rightShiftedInsertionJumpPointShiftNoSegmentSizeIncreace(insertionIndex - (size/2), (size + 1) / 2, jumpDepth);
+                if(insertionIndex < size) jumpAdress->rightShiftedInsertionJumpPointShiftNoSegmentSizeIncrease(insertionIndex - (size/2), (size + 1) / 2, jumpDepth);
                 else jumpAdress->shiftAllRightByOne(jumpDepth);
 
                 jumpAdress->prev->insertionJumpPointShift(insertionIndex, size/2, jumpDepth);
@@ -361,19 +374,22 @@ struct PralNode
                 
                 jumpAdress->insertionJumpPointShift(0, (size + 1) / 2, jumpDepth);
 
-                jumpAdress->prev->insertionJumpPointShiftNoSegmentSizeIncreace(insertionIndex, size/2, jumpDepth);
+                jumpAdress->prev->insertionJumpPointShiftNoSegmentSizeIncrease(insertionIndex, size/2, jumpDepth);
             }
         }
     }
 
-    void erasureJumpPointShiftNoSegmentSizeIncreace(unsigned int erasureIndex, unsigned int size, short jumpDepth)
+    // Called to shift the jump nodes after an element has been erased from the Pral, the Sub-Pral (the section of the Pral covered by the jump tree rooted at this) is NOT set
+    // to decrease in size by 1, and NO Sub-Pral to the left of the one rooted at this is set to decrease in size. erasureIndex is the index of the erased element within the
+    // Sub-Pral, size is the number of elements in the Sub-Pral (before the erasure), and jumpDepth is the remaining height in the jump tree.
+    void erasureJumpPointShiftNoSegmentSizeDecrease(unsigned int erasureIndex, unsigned int size, short jumpDepth)
     {
         if(jumpDepth == 0) return;
         jumpDepth --;
 
         if(erasureIndex >= size/2)
         {
-            if(erasureIndex < size) jumpAdress->erasureJumpPointShiftNoSegmentSizeIncreace(erasureIndex - (size/2), (size + 1) / 2, jumpDepth);
+            if(erasureIndex < size) jumpAdress->erasureJumpPointShiftNoSegmentSizeDecrease(erasureIndex - (size/2), (size + 1) / 2, jumpDepth);
         }
         else
         {
@@ -384,11 +400,14 @@ struct PralNode
             jumpAdress = jumpAdress->next;
 
             jumpAdress->shiftAllRightByOne(jumpDepth);
-            jumpAdress->prev->erasureJumpPointShiftNoSegmentSizeIncreace(erasureIndex, size/2, jumpDepth);
+            jumpAdress->prev->erasureJumpPointShiftNoSegmentSizeDecrease(erasureIndex, size/2, jumpDepth);
         }
     }
 
-    void leftShiftedErasureJumpPointShiftNoSegmentSizeIncreace(unsigned int erasureIndex, unsigned int size, short jumpDepth)
+    // Called to shift the jump nodes after an element has been erased from the Pral, the Sub-Pral (the section of the Pral covered by the jump tree rooted at this) is NOT set
+    // to decrease in size by 1, and a Sub-Pral to the left of the one rooted at this IS set to decrease in size. erasureIndex is the index of the erased element within the
+    // Sub-Pral, size is the number of elements in the Sub-Pral (before the erasure), and jumpDepth is the remaining height in the jump tree.
+    void leftShiftedErasureJumpPointShiftNoSegmentSizeDecrease(unsigned int erasureIndex, unsigned int size, short jumpDepth)
     {
         if(jumpDepth == 0) return;
         jumpDepth --;
@@ -401,17 +420,20 @@ struct PralNode
 
             jumpAdress = jumpAdress->prev;
 
-            if(erasureIndex < size) jumpAdress->leftShiftedErasureJumpPointShiftNoSegmentSizeIncreace(erasureIndex - (size/2), (size + 1) / 2, jumpDepth);
+            if(erasureIndex < size) jumpAdress->leftShiftedErasureJumpPointShiftNoSegmentSizeDecrease(erasureIndex - (size/2), (size + 1) / 2, jumpDepth);
             else jumpAdress->shiftAllLeftByOne(jumpDepth);
 
             jumpAdress->prev->shiftAllLeftByOne(jumpDepth);
         }
         else
         {
-            jumpAdress->prev->leftShiftedErasureJumpPointShiftNoSegmentSizeIncreace(erasureIndex, size/2, jumpDepth);
+            jumpAdress->prev->leftShiftedErasureJumpPointShiftNoSegmentSizeDecrease(erasureIndex, size/2, jumpDepth);
         }
     }
 
+    // Called to shift the jump nodes after an element has been erased from the Pral, and the Sub-Pral (the section of the Pral covered by the jump tree rooted at this) is set
+    // to decrease in size by 1. erasureIndex is the index of the erased element within the Sub-Pral, size is the number of elements in the Sub-Pral (before the erasure), and
+    // jumpDepth is the remaining height in the jump tree.
     void erasureJumpPointShift(unsigned int erasureIndex, unsigned int size, short jumpDepth)
     {
         if(jumpDepth == 0) return;
@@ -433,7 +455,7 @@ struct PralNode
 
                 jumpAdress->prev->erasureJumpPointShift(erasureIndex, size/2, jumpDepth);
 
-                if(erasureIndex < size) jumpAdress->leftShiftedErasureJumpPointShiftNoSegmentSizeIncreace(erasureIndex - (size/2), (size + 1) / 2, jumpDepth);
+                if(erasureIndex < size) jumpAdress->leftShiftedErasureJumpPointShiftNoSegmentSizeDecrease(erasureIndex - (size/2), (size + 1) / 2, jumpDepth);
                 else jumpAdress->shiftAllLeftByOne(jumpDepth);
             }
         }
@@ -449,7 +471,7 @@ struct PralNode
 
                 jumpAdress->erasureJumpPointShift(0, (size + 1) / 2, jumpDepth);
 
-                jumpAdress->prev->erasureJumpPointShiftNoSegmentSizeIncreace(erasureIndex, size/2, jumpDepth);
+                jumpAdress->prev->erasureJumpPointShiftNoSegmentSizeDecrease(erasureIndex, size/2, jumpDepth);
             }
             else// size % 2 == 0.
             {
@@ -479,6 +501,8 @@ struct PralIndexListNode
     }
 };
 
+// When inserting or erasing an element from the pral, that element's index is required to shift the jump tree around. PralIndexedIterator contains a pointer to a node in a Pral
+// and automatically keeps track of the node's index for this purpose. The index remains accurate after insertions and erasures.
 template <typename T>
 class PralIndexedIterator
 {
@@ -1039,8 +1063,6 @@ class Pral
 
             last->next = newNode;
             newNode->prev = last;
-            // newNode->jumpAdress = last->jumpAdress;// This and next line probably don't matter, since I think last will always have a NULL jumpAdress
-            // last->jumpAdress = NULL;
             last = newNode;
 
             first->insertionJumpPointShift(sizeVar, sizeVar, jumpDepth);

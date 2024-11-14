@@ -6,7 +6,7 @@
 #include "pral.hpp"
 #include "SBBTree.hpp"
 
-int main()// 1331575
+int main()
 {
     std::vector<int> rng;
     Pral<int> myPral;
